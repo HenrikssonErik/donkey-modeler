@@ -52,10 +52,20 @@ def save_model(model, model_name, fh):
 def load_sketches(fh):
     """Load sketches in a file from the handle @fh to memory as numpy arrays. """
     sketches = list()
-    for line in fh:
-        sketch = map(long, line.strip().split())
-        sketches.append(sketch)
-    return np.array(sketches)
+    size_check = 2000 #DEFAULT VALUE FOR ANALYZER BUILD
+    #print(fh)
+    for num, line in enumerate(fh):
+        sketch = [int(x) for x in line.strip().split()]
+        if len(sketch) != size_check:
+            print(f"check sketch # {num} with smaller length ({len(sketch)}) than required ({size_check})")
+    
+        elif np.count_nonzero(np.asarray(sketch)) == 0:  # Check if the sketch is all zeros
+            print(f"sketch # {num} contains only 0s")
+
+        else:
+            sketches.append(sketch)
+    sketches = np.array(sketches)
+    return sketches
 
 
 def pairwise_distance(arr, method='hamming'):

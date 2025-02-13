@@ -7,7 +7,7 @@
 import numpy as np
 from scipy.spatial.distance import hamming
 from sklearn.metrics import silhouette_score
-from medoids import _k_medoids_spawn_once
+from .medoids import _k_medoids_spawn_once
 
 
 class BestClusterGroup():
