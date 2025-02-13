@@ -29,16 +29,16 @@ evasion_mimicry:
 	test -f venv/bin/activate || virtualenv -p $(shell which python) venv
 	. venv/bin/activate ; \
 		pip install numpy scipy scikit-learn ; \
-		python model.py -t ../../data/train_mimicry_evasion/ -u ../../data/test_mimicry_evasion_third/ -m mean -c 1 -v > ../../output/mimicry-evasion-results-third.txt
+		python model.py -t ../../data/train_mimicry_evasion/ -u ../../data/test_mimicry_evasion/ -m mean -c 1 -v > ../../output/mimicry-evasion-results.txt
 
 attack_mimicry:
 	test -f venv/bin/activate || virtualenv -p $(shell which python) venv
 	. venv/bin/activate ; \
 		pip install numpy scipy scikit-learn ; \
-		python model.py -t ../../data/train_mimicry_evasion_third/ -u ../../data/test_mimicry_attack_third/ -m mean -c 1 -v > ../../output/mimicry-attack-results-third.txt
+		python model.py -t ../../data/train_mimicry_evasion/ -u ../../data/test_mimicry_attack/ -m mean -c 1 -v > ../../output/mimicry-attack-results.txt
 
 benign_mimicry:
 	test -f venv/bin/activate || virtualenv -p $(shell which python) venv
 	. venv/bin/activate ; \
 		pip install numpy scipy scikit-learn ; \
-		python model.py -t ../../data/train_mimicry_evasion_third/ -u ../../data/test_mimicry_benign_third/ -m mean -c 1 -v > ../../output/mimicry-benign-results-third.txt
+		python model.py -t ../../data/train_mimicry_evasion/ -u ../../data/test_mimicry_benign/ -m mean -c 1 -v > ../../output/mimicry-benign-results.txt
