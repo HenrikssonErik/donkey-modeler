@@ -119,7 +119,7 @@ def model_graphs(train_files, model_file, max_cluster_num=6, num_trials=20, max_
     return models
 
 
-def test_graphs(test_files, models, metric, num_stds):
+def test_graphs(test_files, models, metric, num_stds, hamming_distance_file_path):
     """Test all sketch vectors in @test_files using the @models
     built from model_training_graphs. """
     total_graphs_tested = 0.0
@@ -127,6 +127,11 @@ def test_graphs(test_files, models, metric, num_stds):
     tn = 0.0 # true negative (not intrusion and not alarmed)
     fp = 0.0 # false positive (not intrusion but alarmed)
     fn = 0.0 # false negative (intrusion but not alarmed)
+
+    if hamming_distance_file_path:
+        # Open the file in write mode ("w") to clear the content if file exists.
+        with open(hamming_distance_file_path, "w") as file:
+            pass
     
     printout = ""
     for test_file in test_files:
@@ -139,9 +144,14 @@ def test_graphs(test_files, models, metric, num_stds):
             if isinstance(DEBUG_INFO, dict):
                 test_info = dict()
             sketches = load_sketches(f)
-            abnormal, max_abnormal_point, num_fitted_model = test_single_graph(sketches, models, metric, num_stds, test_info)
+            abnormal, max_abnormal_point, num_fitted_model, distance_list = test_single_graph(sketches, models, metric, num_stds, test_info)
             if isinstance(DEBUG_INFO, dict):
                 DEBUG_INFO[test_file] = test_info
+            if hamming_distance_file_path:
+                with open(hamming_distance_file_path, "a") as file:
+                    values_str = str(values)
+                    file.write(f"{num_stds} : {values_str}\n")
+
         f.close()
         total_graphs_tested += 1
         if not abnormal: # The graph is considered normal
@@ -186,6 +196,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--model-path', help='file path to save the model', default='model.txt')
     parser.add_argument('-c', '--cross-validation', help='number of cross validation we perform (use 0 to turn off cross validation)', type=int, default=5)
     parser.add_argument('-v', '--verbose', help='produce debugging information', action='store_true')
+    parser.add_argument('-h', '--hamming-distance-path', help='file path to save hamming distances', default='')
     args = parser.parse_args()
 
     SEED = args.seed
@@ -233,7 +244,7 @@ if __name__ == "__main__":
             submodels.append(model)
         for tm in metric_config:
             for ns in std_config:
-                precision, recall, accuracy, f_measure, printout = test_graphs(test_files, submodels, tm, ns)
+                precision, recall, accuracy, f_measure, printout = test_graphs(test_files, submodels, tm, ns, args.hamming_distance_path)
                 print("Metric: {}\tSTD: {}".format(tm, ns))
                 print("Accuracy: {}\tPrecision: {}\tRecall: {}\tF-1: {}".format(accuracy, precision, recall, f_measure))
                 print("{}".format(printout))
@@ -256,7 +267,7 @@ if __name__ == "__main__":
             print("\x1b[6;30;42m[STATUS] Test {}/{}\x1b[0m:".format(cv, args.cross_validation))
             for tm in metric_config:
                 for ns in std_config:
-                    precision, recall, accuracy, f_measure, printout = test_graphs(test_files, submodels, tm, ns)
+                    precision, recall, accuracy, f_measure, printout = test_graphs(test_files, submodels, tm, ns, args.hamming_distance_path)
                     print("Metric: {} STD: {}".format(tm, ns))
                     print("Accuracy: {}\tPrecision: {}\tRecall: {}\tF-1: {}".format(accuracy, precision, recall, f_measure))
                     print("{}".format(printout))

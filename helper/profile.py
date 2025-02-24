@@ -174,6 +174,7 @@ def test_single_graph(arrs, models, metric, num_stds, debug_info=None):
                                 # even for a normal graph.
     max_abnormal_point = None   # The latest stage the graph cannot be fitted
     num_fitted_model = 0 # The total number of models that can be fitted by the test graph.
+    hamming_distances = []
     # Additional logic for debugging only
     if isinstance(debug_info,dict): # debug_info is either None (no debugging) or a dictionary
         failed_at = dict()          # failed_at maps the name of the model to the first arr_id
@@ -229,6 +230,8 @@ def test_single_graph(arrs, models, metric, num_stds, debug_info=None):
                     if isinstance(debug_info,dict):
                         failed_at[model.get_name()] = arr_id
                     break
+        hamming_distances.append(distance_from_medoid-current_threshold)
+            
         if not check_next_model:
             abnormal = False
             # If we don't need to check with the next model,
@@ -264,5 +267,5 @@ def test_single_graph(arrs, models, metric, num_stds, debug_info=None):
         debug_info["fitted Models"] = fitted_models
         debug_info["Failed Arr"] = failed_at
 
-    return abnormal, max_abnormal_point, num_fitted_model
+    return abnormal, max_abnormal_point, num_fitted_model, hamming_distances
 
