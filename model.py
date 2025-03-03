@@ -54,7 +54,12 @@ def load_sketches(fh):
     sketches = list()
     size_check = 2000 #DEFAULT VALUE FOR ANALYZER BUILD
     #print(fh)
+    first_line = True
     for num, line in enumerate(fh):
+        if(first_line):
+            size_check = len(sketch)
+            first_line = False
+        
         sketch = [int(x) for x in line.strip().split()]
         if len(sketch) != size_check:
             print(f"check sketch # {num} with smaller length ({len(sketch)}) than required ({size_check})")
@@ -244,7 +249,7 @@ if __name__ == "__main__":
         rootModels = model_graphs(train_root_files, None)
         rootModels_included = True
 
-        if hamming_distanc_path:
+        if hamming_distance_path:
         # Open the file in write mode ("w") to clear the content if file exists.
             with open(hamming_distance_path, "w") as file:
                 pass
