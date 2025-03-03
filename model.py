@@ -212,11 +212,11 @@ if __name__ == "__main__":
     # file in train_dir diretory is valid graph sketches.
     train = os.listdir(args.train_dir)
     # We make the file name full path
-    train_files = [os.path.join(args.train_dir, f) for f in train]
+    train_files = [os.path.join(args.train_dir, f) for f in train if os.path.isfile(os.path.join(args.train_dir, f))]
     # The test file names within test_dir directory.
     # Again, we perform no error-checking here.
     test = os.listdir(args.test_dir)
-    test_files = [os.path.join(args.test_dir, f) for f in test]
+    test_files = [os.path.join(args.test_dir, f) for f in test if os.path.isfile(os.path.join(args.test_dir, f))]
     # Determine metric to use
     if args.metric is 'both':
         metric_config = ['mean', 'max']
@@ -236,10 +236,10 @@ if __name__ == "__main__":
     rootModels_included = False
     if (args.train_root_dir and args.test_root_dir):
         train_root = os.listdir(args.train_root_dir)
-        train_root_files = [os.path.join(args.train_root_dir, f) for f in train_root]
+        train_root_files = [os.path.join(args.train_root_dir, f) for f in train_root if os.path.isfile(os.path.join(args.train_root_dir, f))]
 
         test_root = os.listdir(args.test_root_dir)
-        test_root_files = [os.path.join(args.test_root_dir, f) for f in test_root]
+        test_root_files = [os.path.join(args.test_root_dir, f) for f in test_root if os.path.isfile(os.path.join(args.test_root_dir, f))]
 
         rootModels = model_graphs(train_root_files, None)
         rootModels_included = True
