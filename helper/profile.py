@@ -209,12 +209,12 @@ def test_single_graph(arrs, models, metric, num_stds, calc_distance, debug_info=
                 distance_from_medoid = hamming(sketch, current_medoid) # Compute the hamming distance between the current medoid and the current test sketch.
                 mean_threshold = model.get_mean_thresholds()[current_cluster_idx]
                 mean_std = model.get_stds()[current_cluster_idx]
-                distance_from_mean = (distance_from_medoid - mean_threshold)
+                distance_from_mean = float(distance_from_medoid) - float(mean_threshold)
                 if(mean_std == 0):
-                    stds_from_mean = round(distance_from_mean / 1, 3)
+                    stds_from_mean = round(float(distance_from_mean), 3)
                     hamming_distances.append(stds_from_mean)
                 else:
-                    stds_from_mean = round(distance_from_mean / mean_std, 3)
+                    stds_from_mean = round(float(distance_from_mean / float(mean_std), 3))
                     hamming_distances.append(stds_from_mean)
             
             if distance_from_medoid > current_threshold:
