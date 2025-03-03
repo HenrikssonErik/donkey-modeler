@@ -194,7 +194,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--model-path', help='file path to save the model', default='model.txt')
     parser.add_argument('-c', '--cross-validation', help='number of cross validation we perform (use 0 to turn off cross validation)', type=int, default=5)
     parser.add_argument('-v', '--verbose', help='produce debugging information', action='store_true')
-    parser.add_argument('-h', '--hamming-distance-path', help='file path to save hamming distances', default='', required=False)
+    parser.add_argument('-d', '--hamming-distance-path', help='file path to save hamming distances', default='', required=False)
     args = parser.parse_args()
 
     SEED = args.seed
