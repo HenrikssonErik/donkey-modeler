@@ -56,11 +56,12 @@ def load_sketches(fh):
     #print(fh)
     first_line = True
     for num, line in enumerate(fh):
+        
+        sketch = [int(x) for x in line.strip().split()]
         if(first_line):
             size_check = len(sketch)
             first_line = False
-        
-        sketch = [int(x) for x in line.strip().split()]
+            
         if len(sketch) != size_check:
             print(f"check sketch # {num} with smaller length ({len(sketch)}) than required ({size_check})")
     
