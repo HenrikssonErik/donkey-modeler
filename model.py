@@ -299,7 +299,7 @@ if __name__ == "__main__":
             for tm in metric_config:
                 for ns in std_config:
                     precision, recall, accuracy, f_measure, printout = test_graphs(test_files, submodels, tm, ns, None)
-                    print("Metric: {} STD: {}".format(tm, ns))
+                    print("Graph Metric: {} STD: {}".format(tm, ns))
                     print("Accuracy: {}\tPrecision: {}\tRecall: {}\tF-1: {}".format(accuracy, precision, recall, f_measure))
                     print("{}".format(printout))
             cv += 1
@@ -315,7 +315,7 @@ if __name__ == "__main__":
                 # Model (only graphs in training_files)
                 root_submodels = list()
                 for tf in training_root_files:
-                    root_submodels.append(models[tf])
+                    root_submodels.append(rootModels[tf])
 
                 print("\x1b[6;30;42m[STATUS] Test {}/{}\x1b[0m:".format(cv, args.cross_validation))
                 for tm in metric_config:
