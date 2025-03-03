@@ -141,11 +141,15 @@ def test_graphs(test_files, models, metric, num_stds, hamming_distance_file_path
             # track debugging information for
             # each test graph. The per-graph debugging
             # information is stored in a dictionary
+            calc_distance = False
+            if hamming_distance_file_path:
+                calc_distance = True
+
             test_info = None
             if isinstance(DEBUG_INFO, dict):
                 test_info = dict()
             sketches = load_sketches(f)
-            abnormal, max_abnormal_point, num_fitted_model, distance_list = test_single_graph(sketches, models, metric, num_stds, False, test_info)
+            abnormal, max_abnormal_point, num_fitted_model, distance_list = test_single_graph(sketches, models, metric, num_stds, calc_distance, test_info)
             if isinstance(DEBUG_INFO, dict):
                 DEBUG_INFO[test_file] = test_info
 
@@ -230,7 +234,7 @@ if __name__ == "__main__":
         metric_config = [args.metric]
     # Determine the number of standard deviations to use
     if not args.num_stds:    # If this argument is not given, we explore different possible configurations.
-        std_config = np.arange(2.5, 4, 0.1)
+        std_config = np.arange(0, 4, 0.1)
     else:
         std_config = [args.num_stds]
     # Train (all training graphs) #
@@ -252,7 +256,7 @@ if __name__ == "__main__":
 
         if args.hamming_distance_path:
         # Open the file in write mode ("w") to clear the content if file exists.
-            with open(args. hamming_distance_path, "w") as file:
+            with open(args.hamming_distance_path, "w") as file:
                 pass
     
     # Perform K-fold cross validation, unless turned off
