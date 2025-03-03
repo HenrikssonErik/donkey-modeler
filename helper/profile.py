@@ -160,8 +160,8 @@ class Model():
     def get_evolution(self):
         return self.evolution
 
-
-def test_single_graph(arrs, models, metric, num_stds, debug_info=None):
+#This is called with sketches from a single file
+def test_single_graph(arrs, models, metric, num_stds, calc_distance, debug_info=None):
     """Test a single graph (@arrs) against all @models.
     @metric: can either be 'mean' or 'max'.
     The thresholds of the @models will be determined
@@ -174,7 +174,9 @@ def test_single_graph(arrs, models, metric, num_stds, debug_info=None):
                                 # even for a normal graph.
     max_abnormal_point = None   # The latest stage the graph cannot be fitted
     num_fitted_model = 0 # The total number of models that can be fitted by the test graph.
-    hamming_distances = []
+
+    hamming_distances = [] # presented as standard deviations away from threshold
+
     # Additional logic for debugging only
     if isinstance(debug_info,dict): # debug_info is either None (no debugging) or a dictionary
         failed_at = dict()          # failed_at maps the name of the model to the first arr_id
@@ -202,8 +204,18 @@ def test_single_graph(arrs, models, metric, num_stds, debug_info=None):
         elif metric == 'max':
             current_threshold = model.get_max_thresholds()[current_cluster_idx] + num_stds * model.get_stds()[current_cluster_idx]
         
-        for arr_id, sketch in enumerate(arrs):
-            distance_from_medoid = hamming(sketch, current_medoid) # Compute the hamming distance between the current medoid and the current test sketch.
+        if(calc_distance):
+            for arr_id, sketch in enumerate(arrs):
+                distance_from_medoid = hamming(sketch, current_medoid) # Compute the hamming distance between the current medoid and the current test sketch.
+                mean_threshold = model.get_mean_thresholds()[current_cluster_idx]
+                mean_std = model.get_stds()[current_cluster_idx]
+                distance_from_mean = (distance_from_medoid - mean_threshold)
+                if(mean_std == 0):
+                    hamming_distances.append(-1)
+                else:
+                    stds_from_mean = distance_from_mean / mean_std
+                    hamming_distances.append(stds_from_mean)
+            
             if distance_from_medoid > current_threshold:
                 # Check maybe the evolution has evolved to the next cluster if it exsits.
                 if current_evolution_idx < len(model.get_evolution()) - 1: # If there is a next cluster in evolution.
@@ -230,7 +242,6 @@ def test_single_graph(arrs, models, metric, num_stds, debug_info=None):
                     if isinstance(debug_info,dict):
                         failed_at[model.get_name()] = arr_id
                     break
-        hamming_distances.append(distance_from_medoid-current_threshold)
             
         if not check_next_model:
             abnormal = False

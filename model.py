@@ -127,11 +127,6 @@ def test_graphs(test_files, models, metric, num_stds, hamming_distance_file_path
     tn = 0.0 # true negative (not intrusion and not alarmed)
     fp = 0.0 # false positive (not intrusion but alarmed)
     fn = 0.0 # false negative (intrusion but not alarmed)
-
-    if hamming_distance_file_path:
-        # Open the file in write mode ("w") to clear the content if file exists.
-        with open(hamming_distance_file_path, "w") as file:
-            pass
     
     printout = ""
     for test_file in test_files:
@@ -144,25 +139,26 @@ def test_graphs(test_files, models, metric, num_stds, hamming_distance_file_path
             if isinstance(DEBUG_INFO, dict):
                 test_info = dict()
             sketches = load_sketches(f)
-            abnormal, max_abnormal_point, num_fitted_model, distance_list = test_single_graph(sketches, models, metric, num_stds, test_info)
+            abnormal, max_abnormal_point, num_fitted_model, distance_list = test_single_graph(sketches, models, metric, num_stds, False, test_info)
             if isinstance(DEBUG_INFO, dict):
                 DEBUG_INFO[test_file] = test_info
+
             if hamming_distance_file_path:
                 with open(hamming_distance_file_path, "a") as file:
-                    values_str = str(values)
-                    file.write(f"{num_stds} : {values_str}\n")
+                    values_str = str(distance_list)
+                    file.write(f"{test_file} : {values_str}\n")
 
         f.close()
         total_graphs_tested += 1
         if not abnormal: # The graph is considered normal
             printout += "{} is NORMAL fitting {}/{} models\n".format(test_file, num_fitted_model, len(models))
-            if "attack" not in test_file: # NOTE: file name should include "attack" to indicate the oracle
+            if "attack" not in test_file and "evasion" not in test_file: # NOTE: file name should include "attack" to indicate the oracle
                 tn = tn + 1
             else:
                 fn = fn + 1
         else:
             printout += "{} is ABNORMAL at {}\n".format(test_file, max_abnormal_point)
-            if "attack" in test_file:
+            if "attack" in test_file or "evasion" in test_file:
                 tp = tp + 1
             else:
                 fp = fp + 1
@@ -187,6 +183,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--train-dir', help='absolute path to the directory that contains all training sketches', required=True)
     parser.add_argument('-u', '--test-dir', help='absolute path to the directory that contains all test sketches', required=True)
+    parser.add_argument('-tr', '--train-root-dir', help='absolute path to the directory that contains all training sketches', required=False)
+    parser.add_argument('-ur', '--test-root-dir', help='absolute path to the directory that contains all test sketches', required=False)
     parser.add_argument('-m', '--metric', choices=['mean', 'max', 'both'], default='both',
             help='threshold metric to use to calculate the mean or max of the cluster distances between cluster members and the medoid')
     parser.add_argument('-n', '--num-stds', choices=np.arange(0, 5.0, 0.1), type=float,
@@ -196,7 +194,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--model-path', help='file path to save the model', default='model.txt')
     parser.add_argument('-c', '--cross-validation', help='number of cross validation we perform (use 0 to turn off cross validation)', type=int, default=5)
     parser.add_argument('-v', '--verbose', help='produce debugging information', action='store_true')
-    parser.add_argument('-h', '--hamming-distance-path', help='file path to save hamming distances', default='')
+    parser.add_argument('-h', '--hamming-distance-path', help='file path to save hamming distances', default='', required=False)
     args = parser.parse_args()
 
     SEED = args.seed
@@ -234,6 +232,22 @@ if __name__ == "__main__":
     if args.save_model:
         model_save_path = args.model_path
     models = model_graphs(train_files, model_save_path)
+
+    rootModels_included = False
+    if (args.train_root_dir and args.test_root_dir):
+        train_root = os.listdir(args.train_root_dir)
+        train_root_files = [os.path.join(args.train_root_dir, f) for f in train_root]
+
+        test_root = os.listdir(args.test_root_dir)
+        test_root_files = [os.path.join(args.test_root_dir, f) for f in test_root]
+
+        rootModels = model_graphs(train_root_files, None)
+        rootModels_included = True
+
+        if hamming_distance_file_path:
+        # Open the file in write mode ("w") to clear the content if file exists.
+        with open(hamming_distance_file_path, "w") as file:
+            pass
     
     # Perform K-fold cross validation, unless turned off
     if args.cross_validation == 0:
@@ -244,10 +258,21 @@ if __name__ == "__main__":
             submodels.append(model)
         for tm in metric_config:
             for ns in std_config:
-                precision, recall, accuracy, f_measure, printout = test_graphs(test_files, submodels, tm, ns, args.hamming_distance_path)
-                print("Metric: {}\tSTD: {}".format(tm, ns))
+                precision, recall, accuracy, f_measure, printout = test_graphs(test_files, submodels, tm, ns, None)
+                print("Graph Metric: {}\tSTD: {}".format(tm, ns))
                 print("Accuracy: {}\tPrecision: {}\tRecall: {}\tF-1: {}".format(accuracy, precision, recall, f_measure))
                 print("{}".format(printout))
+        
+        if(rootModels_included):
+            root_submodels = list()
+            for _, model in rootModels.items():
+                root_submodels.append(model)
+            for tm in metric_config:
+                for ns in std_config:
+                    precision, recall, accuracy, f_measure, printout = test_graphs(test_root_files, root_submodels, tm, ns, args.hamming_distance_path)
+                    print("Root Metric: {}\tSTD: {}".format(tm, ns))
+                    print("Accuracy: {}\tPrecision: {}\tRecall: {}\tF-1: {}".format(accuracy, precision, recall, f_measure))
+                    print("{}".format(printout))
     else:
         kf = ShuffleSplit(n_splits=args.cross_validation, test_size=0.2, random_state=0)
         print("\x1b[6;30;42m[STATUS]\x1b[0m Performing {} cross validation".format(args.cross_validation))
@@ -267,11 +292,33 @@ if __name__ == "__main__":
             print("\x1b[6;30;42m[STATUS] Test {}/{}\x1b[0m:".format(cv, args.cross_validation))
             for tm in metric_config:
                 for ns in std_config:
-                    precision, recall, accuracy, f_measure, printout = test_graphs(test_files, submodels, tm, ns, args.hamming_distance_path)
+                    precision, recall, accuracy, f_measure, printout = test_graphs(test_files, submodels, tm, ns, None)
                     print("Metric: {} STD: {}".format(tm, ns))
                     print("Accuracy: {}\tPrecision: {}\tRecall: {}\tF-1: {}".format(accuracy, precision, recall, f_measure))
                     print("{}".format(printout))
             cv += 1
+        if(rootModels_included):
+            cv = 0  # counter of number of cross validation tests
+            for train_idx, validate_idx in kf.split(train_root_files):
+                training_root_files = list()                     # Training submodels we use
+                for tidx in train_idx:
+                    training_root_files.append(train_root_files[tidx])
+                for vidx in validate_idx:                   # Train graphs used as validation
+                    test_root_files.append(train_root_files[vidx])    # Validation graphs are used as test graphs
+
+                # Model (only graphs in training_files)
+                root_submodels = list()
+                for tf in training_root_files:
+                    root_submodels.append(models[tf])
+
+                print("\x1b[6;30;42m[STATUS] Test {}/{}\x1b[0m:".format(cv, args.cross_validation))
+                for tm in metric_config:
+                    for ns in std_config:
+                        precision, recall, accuracy, f_measure, printout = test_graphs(test_root_files, root_submodels, tm, ns, args.hamming_distance_path)
+                        print("Root Metric: {} STD: {}".format(tm, ns))
+                        print("Accuracy: {}\tPrecision: {}\tRecall: {}\tF-1: {}".format(accuracy, precision, recall, f_measure))
+                        print("{}".format(printout))
+                cv += 1
 
     # Debug print for Visicorn
     if args.verbose:
