@@ -244,10 +244,10 @@ if __name__ == "__main__":
         rootModels = model_graphs(train_root_files, None)
         rootModels_included = True
 
-        if hamming_distance_file_path:
+        if hamming_distanc_path:
         # Open the file in write mode ("w") to clear the content if file exists.
-        with open(hamming_distance_file_path, "w") as file:
-            pass
+            with open(hamming_distance_path, "w") as file:
+                pass
     
     # Perform K-fold cross validation, unless turned off
     if args.cross_validation == 0:

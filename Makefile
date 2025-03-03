@@ -47,4 +47,4 @@ evasion_mimicry_RCA:
 	test -f venv/bin/activate || virtualenv -p $(shell which python) venv
 	. venv/bin/activate ; \
 		pip install numpy scipy scikit-learn ; \
-		python model.py -t ../../data/train_mimicry_evasion/ -u ../../data/test_mimicry_evasion/ -tr ../../data/train_mimicry_RCA/root_sketches -ur ../../data/test_mimicry_evasion_RCA/root_sketches -h ../../output/mimicry-evasion-root-hamming.txt -m mean -c 1 -v > ../../output/mimicry-evasion-results.txt
+		python model.py -t ../../data/train_mimicry_evasion/ -u ../../data/test_mimicry_evasion/ -tr ../../data/train_mimicry_RCA/root_sketches -ur ../../data/test_mimicry_evasion_RCA/root_sketches -h ../../output/mimicry-evasion-root-hamming.txt -m mean -c 1 -v > ../../output/mimicry-evasion-RCA-results.txt
