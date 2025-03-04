@@ -55,6 +55,7 @@ def load_sketches(fh, size_check):
     #size_check = 2000 #DEFAULT VALUE FOR ANALYZER BUILD
     #print(fh)
     #first_line = True
+    fh.seek(0)
     for num, line in enumerate(fh):
         
         sketch = [int(x) for x in line.strip().split()]
@@ -92,7 +93,7 @@ def model_graphs(train_files, model_file, max_cluster_num=6, num_trials=20, max_
     for train_file in train_files:
         with open(train_file, 'r') as f:
             if(first_file):
-                first_line = next(fh)  # Read the first line
+                first_line = next(f)  # Read the first line
                 sketch = [int(x) for x in first_line.strip().split()]
                 size_check = len(sketch)  # Set the size_check
                 first_file = False
@@ -143,6 +144,7 @@ def test_graphs(test_files, models, metric, num_stds, hamming_distance_file_path
     fn = 0.0 # false negative (intrusion but not alarmed)
     
     printout = ""
+    first_file = True
     for test_file in test_files:
         with open(test_file, 'r') as f:
             # if DEBUG_INFO exists, then we will
@@ -156,6 +158,13 @@ def test_graphs(test_files, models, metric, num_stds, hamming_distance_file_path
             test_info = None
             if isinstance(DEBUG_INFO, dict):
                 test_info = dict()
+            
+            if(first_file):
+                first_line = next(f)  # Read the first line
+                sketch = [int(x) for x in first_line.strip().split()]
+                size_check = len(sketch)  # Set the size_check
+                first_file = False
+            
             sketches = load_sketches(f)
 
             if(len(sketches) == 0):
