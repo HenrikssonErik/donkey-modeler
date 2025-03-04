@@ -49,18 +49,15 @@ def save_model(model, model_name, fh):
     fh.write("\n")
 
 
-def load_sketches(fh):
+def load_sketches(fh, size_check):
     """Load sketches in a file from the handle @fh to memory as numpy arrays. """
     sketches = list()
-    size_check = 2000 #DEFAULT VALUE FOR ANALYZER BUILD
+    #size_check = 2000 #DEFAULT VALUE FOR ANALYZER BUILD
     #print(fh)
-    first_line = True
+    #first_line = True
     for num, line in enumerate(fh):
         
         sketch = [int(x) for x in line.strip().split()]
-        if(first_line):
-            size_check = len(sketch)
-            first_line = False
 
         if len(sketch) != size_check:
             print(f"check sketch # {num} with smaller length ({len(sketch)}) than required ({size_check})")
@@ -90,9 +87,20 @@ def model_graphs(train_files, model_file, max_cluster_num=6, num_trials=20, max_
         savefile = open(model_file, 'a+')
     else:
         print("\33[5;30;42m[INFO]\033[0m Model is not saved, use --save-model to save the model")
+    
+    first_file = True
     for train_file in train_files:
         with open(train_file, 'r') as f:
-            sketches = load_sketches(f)
+            if(first_file):
+                first_line = next(fh)  # Read the first line
+                sketch = [int(x) for x in first_line.strip().split()]
+                size_check = len(sketch)  # Set the size_check
+                first_file = False
+
+            sketches = load_sketches(f, size_check)
+            
+            if(len(sketches) == 0):
+                continue
             # @dists contains pairwise Hamming distance between two sketches in @sketches.
             try:
                 dists = pairwise_distance(sketches)
@@ -149,6 +157,10 @@ def test_graphs(test_files, models, metric, num_stds, hamming_distance_file_path
             if isinstance(DEBUG_INFO, dict):
                 test_info = dict()
             sketches = load_sketches(f)
+
+            if(len(sketches) == 0):
+                continue
+                
             abnormal, max_abnormal_point, num_fitted_model, distance_list = test_single_graph(sketches, models, metric, num_stds, calc_distance, test_info)
             if isinstance(DEBUG_INFO, dict):
                 DEBUG_INFO[test_file] = test_info
