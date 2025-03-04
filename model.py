@@ -165,7 +165,7 @@ def test_graphs(test_files, models, metric, num_stds, hamming_distance_file_path
                 size_check = len(sketch)  # Set the size_check
                 first_file = False
             
-            sketches = load_sketches(f)
+            sketches = load_sketches(f, size_check)
 
             if(len(sketches) == 0):
                 continue
