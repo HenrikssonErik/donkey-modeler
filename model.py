@@ -89,6 +89,7 @@ def model_graphs(train_files, model_file, max_cluster_num=6, num_trials=20, max_
     else:
         print("\33[5;30;42m[INFO]\033[0m Model is not saved, use --save-model to save the model")
     
+    size_check = 2000 #default sketch size
     first_file = True
     for train_file in train_files:
         with open(train_file, 'r') as f:
